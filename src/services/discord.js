@@ -94,7 +94,7 @@ class DiscordClient {
             scanAreas: false,
             weather: false,
             devices: false,
-            areaRestrictions: []
+            areaRestrictions: {}
         };
         const [guilds, guildsFull] = await this.getGuilds();
         if (config.discord.allowedUsers.includes(user.id)) {
@@ -104,7 +104,7 @@ class DiscordClient {
         }
 
         let blocked = false;
-        let overwriteAreaRestrictions = false;
+        let overwriteAreaRestrictions = {};
 
         for (let i = 0; i < config.discord.blockedGuilds.length; i++) {
             const guildId = config.discord.blockedGuilds[i];
@@ -145,19 +145,20 @@ class DiscordClient {
                 for (let k = 0; k < userRoles.length; k++) {
                     // Check if assigned role to user is in config roles
                     if (configItem.roles.includes(userRoles[k])) {
+                        const keyAreaRestrictions = config.discord.perms[key].areaRestrictions;
                         perms[key] = true;
-                    }
-                }
-            }
-            // Check once if user role is defined inside areaRestrictions
-            for (let k = 0; k < userRoles.length; k++) {
-                if (userRoles[k] in config.discord.areaRestrictions) {
-                    // Check if there's empty list for any of user roles, if so we disable restrictions
-                    if (config.discord.areaRestrictions[userRoles[k]].length === 0) overwriteAreaRestrictions = true;
-                    else if (!overwriteAreaRestrictions) {
-                        for (const areaName of config.discord.areaRestrictions[userRoles[k]]) {
-                            if (areas.names.includes(areaName)) {
-                                perms.areaRestrictions.push(areaName);
+                        overwriteAreaRestrictions[key] = false;
+                        perms.areaRestrictions[key] = [];
+
+                        // Check area restrictions for provided role & perm type
+                        if (userRoles[k] in keyAreaRestrictions) {
+                            if (keyAreaRestrictions[userRoles[k]].length === 0) overwriteAreaRestrictions[key] = true;
+                            else if (!overwriteAreaRestrictions[key]) {
+                                for (const areaName of keyAreaRestrictions[userRoles[k]]) {
+                                    if (areas.names.includes(areaName)) {
+                                        perms.areaRestrictions[key].push(areaName);
+                                    }
+                                }
                             }
                         }
                     }
@@ -165,9 +166,15 @@ class DiscordClient {
             }
         }
         // If any of user roles have no restrictions we are allowing all
-        if (overwriteAreaRestrictions && perms.areaRestrictions) perms.areaRestrictions = [];
+        for (const [permName, permState] of Object.entries(overwriteAreaRestrictions)) {
+            if (permState) perms.areaRestrictions[permName] = [];
+        }
         // Remove duplicates from perms.areaRestrictions
-        if (perms.areaRestrictions.length !== 0) perms.areaRestrictions = [...new Set(perms.areaRestrictions)];
+        for (const permName of Object.keys(perms.areaRestrictions)) {
+            if (perms.areaRestrictions[permName].length !== 0) {
+                perms.areaRestrictions[permName] = [...new Set(perms.areaRestrictions[permName])];
+            }
+        }
 
         return perms;
     }

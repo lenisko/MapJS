@@ -6,14 +6,18 @@ const config = require('../services/config.js');
 
 const loadAreas = () => {
     let areas = {};
+    const restrictableKeys = ['pokemon', 'gyms', 'pokestops', 'spawnpoints', 'nests', 'portals'];
 
     const areasFilePath = path.resolve(__dirname, '../../static/custom/areas.json');
     try {
         const data = fs.readFileSync(areasFilePath, 'utf8');
         areas = JSON.parse(data);
     } catch (err) {
-        if (Object.keys(config.discord.areaRestrictions).length !== 0) {
-            console.warn('[Area Restrictions] Disabled - `areas.json` file is missing or broken.');
+        for (const permKey of restrictableKeys) {
+            if (Object.keys(config.discord.perms[permKey].areaRestrictions).length !== 0) {
+                console.warn('[Area Restrictions] Disabled - `areas.json` file is missing or broken.');
+                break;
+            }
         }
     }
     return areas;

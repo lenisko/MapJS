@@ -35,7 +35,7 @@ const getPokemon = async (minLat, maxLat, minLon, maxLon, showPVP, showIV, updat
     let includeBigKarp = false;
     let includeTinyRat = false;
     let onlyVerifiedTimersSQL = '';
-    let areaRestrictionsSQL = getAreaRestrictionSql(areaRestrictions);
+    let areaRestrictionsSQL = getAreaRestrictionSql('pokemon', areaRestrictions);
     let interestedLevelCaps = [];
     let interestedMegas = [];
     for (const key of pokemonFilterExclude || []) {
@@ -304,7 +304,7 @@ const getGyms = async (minLat, maxLat, minLon, maxLon, updated = 0, showRaids = 
     let excludeAllButBattlesSQL = '';
     let excludeTeamSQL = '';
     let excludeAvailableSlotsSQL = '';
-    let areaRestrictionsSQL = getAreaRestrictionSql(areaRestrictions);
+    let areaRestrictionsSQL = getAreaRestrictionSql('gyms', areaRestrictions);
     let args = [minLat, maxLat, minLon, maxLon, updated];
 
     if (showRaids) {
@@ -540,7 +540,7 @@ const getPokestops = async (minLat, maxLat, minLon, maxLon, updated = 0, showPok
     let excludeItemSQL = '';
     let excludeInvasionSQL = '';
     let excludePokestopSQL = '';
-    let areaRestrictionsSQL = getAreaRestrictionSql(areaRestrictions);
+    let areaRestrictionsSQL = getAreaRestrictionSql('pokestops', areaRestrictions);
 
     if (showQuests) {
         if (excludedTypes.length === 0) {
@@ -795,7 +795,7 @@ const getSpawnpoints = async (minLat, maxLat, minLon, maxLon, updated, spawnpoin
     } else {
         excludeTimerSQL = 'AND (despawn_sec IS NULL AND despawn_sec IS NOT NULL)';
     }
-    let areaRestrictionsSQL = getAreaRestrictionSql(areaRestrictions);
+    let areaRestrictionsSQL = getAreaRestrictionSql('spawnpoints', areaRestrictions);
 
     const sql = `
     SELECT id, lat, lon, updated, despawn_sec
@@ -1126,7 +1126,7 @@ const getNests = async (minLat, maxLat, minLon, maxLon, nestFilterExclude = null
         excludeAverageSQL = ' AND pokemon_avg >= ?';
         args.push(averageCountFilter);
     }
-    let areaRestrictionsSQL = getAreaRestrictionSql(areaRestrictions);
+    let areaRestrictionsSQL = getAreaRestrictionSql('nests', areaRestrictions);
 
     const sql = `
     SELECT nest_id, lat, lon, name, pokemon_id, pokemon_count, pokemon_avg, updated
@@ -1165,7 +1165,7 @@ const getPortals = async (minLat, maxLat, minLon, maxLon, portalFilterExclude = 
     } else if (!showNewPortals && !showOldPortals) {
         sqlExcludeCreate = 'AND FALSE';
     }
-    let areaRestrictionsSQL = getAreaRestrictionSql(areaRestrictions);
+    let areaRestrictionsSQL = getAreaRestrictionSql('portals', areaRestrictions);
 
     const sql = `
     SELECT id, external_id, lat, lon, name, url, updated, imported, checked
@@ -1540,14 +1540,16 @@ const getQuestRewardTypesByName = (search) => {
     return filtered;
 };
 
-const getAreaRestrictionSql = (areaRestrictions) => {
+const getAreaRestrictionSql = (permName, areaRestrictions) => {
     let areaRestrictionsSQL = '';
-    if (areaRestrictions.length !== 0) {
+    const permAreaRestrictions = areaRestrictions[permName];
+
+    if (permAreaRestrictions.length !== 0) {
         areaRestrictionsSQL = 'AND (';
-        for (let i = 0; i < areaRestrictions.length; i++) {
-            const polygon = areas.polygons[areaRestrictions[i]].map(e => e.join(' ')).join();
+        for (let i = 0; i < permAreaRestrictions.length; i++) {
+            const polygon = areas.polygons[permAreaRestrictions[i]].map(e => e.join(' ')).join();
             areaRestrictionsSQL += `ST_CONTAINS(ST_GEOMFROMTEXT("POLYGON((${polygon}))"), POINT(lon, lat))`;
-            if (areaRestrictions.length - i > 1) areaRestrictionsSQL += ' OR ';
+            if (permAreaRestrictions.length - i > 1) areaRestrictionsSQL += ' OR ';
         }
         areaRestrictionsSQL += ')';
     }

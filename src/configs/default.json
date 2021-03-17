@@ -132,7 +132,6 @@
       "allowedGuilds": [],
       "blockedGuilds": [],
       "allowedUsers": [],
-      "areaRestrictions": {},
       "perms": {
           "map": {
               "enabled": true,
@@ -140,7 +139,8 @@
           },
           "pokemon": {
               "enabled": true,
-              "roles": []
+              "roles": [],
+              "areaRestrictions": {}
           },
           "raids": {
               "enabled": true,
@@ -148,11 +148,13 @@
           },
           "gyms": {
               "enabled": true,
-              "roles": []
+              "roles": [],
+              "areaRestrictions": {}
           },
           "pokestops": {
               "enabled": true,
-              "roles": []
+              "roles": [],
+              "areaRestrictions": {}
           },
           "quests": {
               "enabled": true,
@@ -168,7 +170,8 @@
           },
           "spawnpoints": {
               "enabled": true,
-              "roles": []
+              "roles": [],
+              "areaRestrictions": {}
           },
           "iv": {
               "enabled": true,
@@ -188,11 +191,13 @@
           },
           "nests": {
               "enabled": true,
-              "roles": []
+              "roles": [],
+              "areaRestrictions": {}
           },
           "portals": {
               "enabled": true,
-              "roles": []
+              "roles": [],
+              "areaRestrictions": {}
           },
           "scanAreas": {
               "enabled": true,
